@@ -1,4 +1,4 @@
-import { Client, Account, Databases } from 'appwrite';
+import { Client, Account, Databases, Storage, ID } from 'appwrite';
 
 // Appwrite configuration - user will need to provide these values
 const APPWRITE_ENDPOINT = import.meta.env.VITE_APPWRITE_ENDPOINT || 'https://cloud.appwrite.io/v1';
@@ -14,7 +14,9 @@ if (APPWRITE_PROJECT_ID) {
 
 export const account = new Account(client);
 export const databases = new Databases(client);
-export { client };
+export const storage = new Storage(client);
+export { client, ID };
 
 export const APPWRITE_DATABASE_ID = import.meta.env.VITE_APPWRITE_DATABASE_ID || '';
 export const APPWRITE_LISTINGS_COLLECTION_ID = import.meta.env.VITE_APPWRITE_LISTINGS_COLLECTION_ID || '';
+export const APPWRITE_STORAGE_BUCKET_ID = import.meta.env.VITE_APPWRITE_STORAGE_BUCKET_ID || '';
