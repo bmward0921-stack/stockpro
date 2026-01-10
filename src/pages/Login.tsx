@@ -5,30 +5,95 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Package, AlertCircle } from 'lucide-react';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Package, AlertCircle, CheckCircle2 } from 'lucide-react';
+import { getMissingConfig } from '@/lib/appwrite';
 
 const Login = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [error, setError] = useState('');
+  const [name, setName] = useState('');
+  const [localError, setLocalError] = useState('');
   const [loading, setLoading] = useState(false);
-  const { login } = useAuth();
+  const [successMessage, setSuccessMessage] = useState('');
+  const { login, signup, error: authError, isConfigured, clearError } = useAuth();
   const navigate = useNavigate();
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const error = localError || authError;
+  const missingConfig = getMissingConfig();
+
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError('');
+    setLocalError('');
+    setSuccessMessage('');
+    clearError();
     setLoading(true);
 
-    try {
-      await login(email, password);
+    const result = await login(email, password);
+    
+    if (result.success) {
       navigate('/');
-    } catch (err: any) {
-      setError(err.message || 'Invalid email or password. Please try again.');
-    } finally {
-      setLoading(false);
+    } else {
+      setLocalError(result.error || 'Login failed');
     }
+    
+    setLoading(false);
   };
+
+  const handleSignup = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLocalError('');
+    setSuccessMessage('');
+    clearError();
+
+    if (password.length < 8) {
+      setLocalError('Password must be at least 8 characters long');
+      return;
+    }
+
+    setLoading(true);
+
+    const result = await signup(email, password, name);
+    
+    if (result.success) {
+      navigate('/');
+    } else {
+      setLocalError(result.error || 'Signup failed');
+    }
+    
+    setLoading(false);
+  };
+
+  // Show configuration warning if Appwrite is not set up
+  if (!isConfigured) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-background via-background to-muted/30 p-4">
+        <Card className="w-full max-w-md border-border/50 shadow-2xl">
+          <CardHeader className="space-y-4 text-center">
+            <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-destructive/10">
+              <AlertCircle className="h-8 w-8 text-destructive" />
+            </div>
+            <div>
+              <CardTitle className="text-2xl font-bold">Configuration Required</CardTitle>
+              <CardDescription className="mt-2">
+                Appwrite is not configured. Please set the following environment variables:
+              </CardDescription>
+            </div>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-2 rounded-lg bg-muted p-4 font-mono text-sm">
+              {missingConfig.map((config) => (
+                <div key={config} className="text-destructive">• {config}</div>
+              ))}
+            </div>
+            <p className="mt-4 text-center text-xs text-muted-foreground">
+              Create a <code className="rounded bg-muted px-1">.env</code> file in your project root with these variables.
+            </p>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-background via-background to-muted/30 p-4">
@@ -45,44 +110,115 @@ const Login = () => {
           </div>
         </CardHeader>
         <CardContent>
-          <form onSubmit={handleSubmit} className="space-y-4">
-            {error && (
-              <div className="flex items-center gap-2 rounded-lg bg-destructive/10 p-3 text-sm text-destructive">
-                <AlertCircle className="h-4 w-4 flex-shrink-0" />
-                <span>{error}</span>
-              </div>
-            )}
-            
-            <div className="space-y-2">
-              <Label htmlFor="email">Email</Label>
-              <Input
-                id="email"
-                type="email"
-                placeholder="you@example.com"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                required
-                autoComplete="email"
-              />
-            </div>
+          <Tabs defaultValue="login" className="w-full">
+            <TabsList className="grid w-full grid-cols-2">
+              <TabsTrigger value="login">Sign In</TabsTrigger>
+              <TabsTrigger value="signup">Sign Up</TabsTrigger>
+            </TabsList>
 
-            <div className="space-y-2">
-              <Label htmlFor="password">Password</Label>
-              <Input
-                id="password"
-                type="password"
-                placeholder="••••••••"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
-                autoComplete="current-password"
-              />
-            </div>
+            <TabsContent value="login" className="space-y-4 pt-4">
+              <form onSubmit={handleLogin} className="space-y-4">
+                {error && (
+                  <div className="flex items-center gap-2 rounded-lg bg-destructive/10 p-3 text-sm text-destructive">
+                    <AlertCircle className="h-4 w-4 flex-shrink-0" />
+                    <span>{error}</span>
+                  </div>
+                )}
+                
+                <div className="space-y-2">
+                  <Label htmlFor="login-email">Email</Label>
+                  <Input
+                    id="login-email"
+                    type="email"
+                    placeholder="you@example.com"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    required
+                    autoComplete="email"
+                  />
+                </div>
 
-            <Button type="submit" className="w-full" disabled={loading}>
-              {loading ? 'Signing in...' : 'Sign in'}
-            </Button>
-          </form>
+                <div className="space-y-2">
+                  <Label htmlFor="login-password">Password</Label>
+                  <Input
+                    id="login-password"
+                    type="password"
+                    placeholder="••••••••"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    required
+                    autoComplete="current-password"
+                  />
+                </div>
+
+                <Button type="submit" className="w-full" disabled={loading}>
+                  {loading ? 'Signing in...' : 'Sign in'}
+                </Button>
+              </form>
+            </TabsContent>
+
+            <TabsContent value="signup" className="space-y-4 pt-4">
+              <form onSubmit={handleSignup} className="space-y-4">
+                {error && (
+                  <div className="flex items-center gap-2 rounded-lg bg-destructive/10 p-3 text-sm text-destructive">
+                    <AlertCircle className="h-4 w-4 flex-shrink-0" />
+                    <span>{error}</span>
+                  </div>
+                )}
+
+                {successMessage && (
+                  <div className="flex items-center gap-2 rounded-lg bg-green-500/10 p-3 text-sm text-green-600">
+                    <CheckCircle2 className="h-4 w-4 flex-shrink-0" />
+                    <span>{successMessage}</span>
+                  </div>
+                )}
+                
+                <div className="space-y-2">
+                  <Label htmlFor="signup-name">Name (optional)</Label>
+                  <Input
+                    id="signup-name"
+                    type="text"
+                    placeholder="John Doe"
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                    autoComplete="name"
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="signup-email">Email</Label>
+                  <Input
+                    id="signup-email"
+                    type="email"
+                    placeholder="you@example.com"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    required
+                    autoComplete="email"
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="signup-password">Password</Label>
+                  <Input
+                    id="signup-password"
+                    type="password"
+                    placeholder="••••••••"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    required
+                    minLength={8}
+                    autoComplete="new-password"
+                  />
+                  <p className="text-xs text-muted-foreground">Must be at least 8 characters</p>
+                </div>
+
+                <Button type="submit" className="w-full" disabled={loading}>
+                  {loading ? 'Creating account...' : 'Create account'}
+                </Button>
+              </form>
+            </TabsContent>
+          </Tabs>
 
           <p className="mt-6 text-center text-xs text-muted-foreground">
             Access is limited to authorized team members only.
