@@ -271,7 +271,7 @@ const ListingForm = () => {
                       />
                     </div>
                     <div className="space-y-2">
-                      <Label htmlFor={`${platform}-url`}>Listing URL (optional)</Label>
+                      <Label htmlFor={`${platform}-url`}>{PLATFORM_LABELS[platform]} URL (optional)</Label>
                       <Input
                         id={`${platform}-url`}
                         type="url"
