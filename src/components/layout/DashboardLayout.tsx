@@ -9,6 +9,7 @@ import {
   PlusCircle,
   BarChart3,
   Settings,
+  ShieldCheck,
   LogOut,
   Menu,
   X,
@@ -25,6 +26,7 @@ const navigation = [
   { name: 'Add Listing', href: '/listings/new', icon: PlusCircle },
   { name: 'Analytics', href: '/analytics', icon: BarChart3 },
   { name: 'Settings', href: '/settings', icon: Settings },
+  { name: 'Admin', href: '/admin', icon: ShieldCheck },
 ];
 
 const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {

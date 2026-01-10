@@ -13,6 +13,7 @@ import ListingDetail from "@/pages/ListingDetail";
 import ListingForm from "@/pages/ListingForm";
 import Analytics from "@/pages/Analytics";
 import Settings from "@/pages/Settings";
+import AdminSettings from "@/pages/AdminSettings";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -92,6 +93,16 @@ const App = () => (
                 <ProtectedRoute>
                   <DashboardLayout>
                     <Settings />
+                  </DashboardLayout>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/admin"
+              element={
+                <ProtectedRoute>
+                  <DashboardLayout>
+                    <AdminSettings />
                   </DashboardLayout>
                 </ProtectedRoute>
               }
