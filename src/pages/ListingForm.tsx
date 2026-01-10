@@ -290,16 +290,26 @@ const ListingForm = () => {
                             ? 'https://poshmark.com/listing/...' 
                             : platform === 'facebook'
                             ? 'https://facebook.com/marketplace/...'
+                            : platform === 'squarespace'
+                            ? 'https://yourstore.squarespace.com/...'
                             : 'https://...'
                         }
                         pattern={
                           platform === 'poshmark' 
                             ? 'https://(www\\.)?poshmark\\.com/.*' 
+                            : platform === 'facebook'
+                            ? 'https://(www\\.)?(facebook\\.com|fb\\.com)/.*'
+                            : platform === 'squarespace'
+                            ? 'https://.*\\.squarespace\\.com/.*|https://.*'
                             : undefined
                         }
                         title={
                           platform === 'poshmark'
                             ? 'Please enter a valid Poshmark URL (https://poshmark.com/...)'
+                            : platform === 'facebook'
+                            ? 'Please enter a valid Facebook URL (https://facebook.com/...)'
+                            : platform === 'squarespace'
+                            ? 'Please enter a valid Squarespace or custom domain URL'
                             : undefined
                         }
                       />
