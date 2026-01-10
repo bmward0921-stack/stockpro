@@ -18,6 +18,7 @@ import { Platform, PlatformListing, PLATFORM_LABELS, CATEGORIES } from '@/types/
 import { ArrowLeft, Save, Loader2 } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 import { Link } from 'react-router-dom';
+import ImageUpload from '@/components/ImageUpload';
 
 const PLATFORMS: Platform[] = ['facebook', 'poshmark', 'squarespace'];
 
@@ -149,16 +150,10 @@ const ListingForm = () => {
               />
             </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="imageUrl">Image URL</Label>
-              <Input
-                id="imageUrl"
-                type="url"
-                value={formData.imageUrl}
-                onChange={(e) => setFormData({ ...formData, imageUrl: e.target.value })}
-                placeholder="https://example.com/image.jpg"
-              />
-            </div>
+            <ImageUpload
+              value={formData.imageUrl}
+              onChange={(url) => setFormData({ ...formData, imageUrl: url })}
+            />
 
             <div className="grid gap-4 sm:grid-cols-2">
               <div className="space-y-2">
