@@ -234,6 +234,7 @@ const ProductImageAnalyzer = ({ onProductDetected }: ProductImageAnalyzerProps) 
                 ref={fileInputRef}
                 type="file"
                 accept="image/*"
+                capture="environment"
                 onChange={handleFileUpload}
                 className="hidden"
               />
