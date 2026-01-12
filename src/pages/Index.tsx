@@ -1,9 +1,17 @@
 import { useState, useRef } from "react";
 import { Link } from "react-router-dom";
-import { ExternalLink, Plus, Package, ArrowRight, Search, Camera, X } from "lucide-react";
+import { ExternalLink, Plus, Package, ArrowRight, Search, Camera, X, Settings } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "@/components/ui/dialog";
+import { Label } from "@/components/ui/label";
 import { useListings } from "@/hooks/useListings";
 import { useAuth } from "@/contexts/AuthContext";
 import { getPrimaryImage, PLATFORM_LABELS, Platform } from "@/types/listing";
@@ -44,9 +52,38 @@ const Index = () => {
   const [search, setSearch] = useState("");
   const [uploadedImages, setUploadedImages] = useState<string[]>([]);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  
+  // Custom platform state
+  const [showOtherDialog, setShowOtherDialog] = useState(false);
+  const [customPlatform, setCustomPlatform] = useState({ name: "", url: "" });
+  const [savedCustomPlatforms, setSavedCustomPlatforms] = useState<Array<{ name: string; url: string }>>(() => {
+    const saved = localStorage.getItem("customPlatforms");
+    return saved ? JSON.parse(saved) : [];
+  });
 
   const openPlatform = (url: string) => {
     window.open(url, "_blank", "noopener,noreferrer");
+  };
+
+  const handleSaveCustomPlatform = () => {
+    if (customPlatform.name && customPlatform.url) {
+      let url = customPlatform.url;
+      if (!url.startsWith("http://") && !url.startsWith("https://")) {
+        url = "https://" + url;
+      }
+      const newPlatforms = [...savedCustomPlatforms, { name: customPlatform.name, url }];
+      setSavedCustomPlatforms(newPlatforms);
+      localStorage.setItem("customPlatforms", JSON.stringify(newPlatforms));
+      setCustomPlatform({ name: "", url: "" });
+      setShowOtherDialog(false);
+      openPlatform(url);
+    }
+  };
+
+  const removeCustomPlatform = (index: number) => {
+    const newPlatforms = savedCustomPlatforms.filter((_, i) => i !== index);
+    setSavedCustomPlatforms(newPlatforms);
+    localStorage.setItem("customPlatforms", JSON.stringify(newPlatforms));
   };
 
   const handleCameraClick = () => {
@@ -305,8 +342,81 @@ const Index = () => {
               <ExternalLink className="ml-1.5 h-3 w-3" />
             </Button>
           ))}
+          
+          {/* Custom saved platforms */}
+          {savedCustomPlatforms.map((platform, index) => (
+            <div key={`custom-${index}`} className="group relative">
+              <Button
+                size="sm"
+                variant="success"
+                onClick={() => openPlatform(platform.url)}
+              >
+                {platform.name}
+                <ExternalLink className="ml-1.5 h-3 w-3" />
+              </Button>
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  removeCustomPlatform(index);
+                }}
+                className="absolute -right-1 -top-1 hidden rounded-full bg-destructive p-0.5 text-white shadow-md hover:bg-destructive/90 group-hover:block"
+              >
+                <X className="h-3 w-3" />
+              </button>
+            </div>
+          ))}
+          
+          {/* Other button */}
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={() => setShowOtherDialog(true)}
+          >
+            <Plus className="mr-1.5 h-3 w-3" />
+            Other
+          </Button>
         </div>
       </div>
+
+      {/* Custom Platform Dialog */}
+      <Dialog open={showOtherDialog} onOpenChange={setShowOtherDialog}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Add Custom Platform</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label htmlFor="platform-name">Platform Name</Label>
+              <Input
+                id="platform-name"
+                placeholder="e.g., Depop, Grailed, Offerup"
+                value={customPlatform.name}
+                onChange={(e) => setCustomPlatform((prev) => ({ ...prev, name: e.target.value }))}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="platform-url">Listing URL</Label>
+              <Input
+                id="platform-url"
+                placeholder="e.g., depop.com/sell"
+                value={customPlatform.url}
+                onChange={(e) => setCustomPlatform((prev) => ({ ...prev, url: e.target.value }))}
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowOtherDialog(false)}>
+              Cancel
+            </Button>
+            <Button 
+              onClick={handleSaveCustomPlatform}
+              disabled={!customPlatform.name || !customPlatform.url}
+            >
+              Save & Open
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
