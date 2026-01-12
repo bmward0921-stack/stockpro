@@ -2,14 +2,22 @@ import { useEffect, useRef, useState, useCallback } from 'react';
 import { Canvas as FabricCanvas, FabricImage } from 'fabric';
 import { Button } from '@/components/ui/button';
 import { Slider } from '@/components/ui/slider';
-import { RotateCw, RotateCcw, Crop, Check, X, FlipHorizontal, FlipVertical, ZoomIn, ZoomOut } from 'lucide-react';
+import { RotateCw, RotateCcw, Crop, Check, X, FlipHorizontal, FlipVertical, ZoomIn, ZoomOut, Undo2, Redo2 } from 'lucide-react';
 import { Label } from '@/components/ui/label';
+import { toast } from '@/hooks/use-toast';
 
 interface ImageEditorProps {
   imageUrl: string;
   onSave: (editedImageUrl: string) => void;
   onCancel: () => void;
 }
+
+interface HistoryState {
+  dataUrl: string;
+  rotation: number;
+}
+
+const MAX_HISTORY = 20;
 
 const ImageEditor = ({ imageUrl, onSave, onCancel }: ImageEditorProps) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -19,6 +27,112 @@ const ImageEditor = ({ imageUrl, onSave, onCancel }: ImageEditorProps) => {
   const [rotation, setRotation] = useState(0);
   const [isCropping, setIsCropping] = useState(false);
   const [cropRect, setCropRect] = useState<{ left: number; top: number; width: number; height: number } | null>(null);
+  
+  // History state for undo/redo
+  const [history, setHistory] = useState<HistoryState[]>([]);
+  const [historyIndex, setHistoryIndex] = useState(-1);
+  const isRestoringRef = useRef(false);
+
+  // Check if undo/redo is available
+  const canUndo = historyIndex > 0;
+  const canRedo = historyIndex < history.length - 1;
+
+  // Save current state to history
+  const saveToHistory = useCallback(() => {
+    if (!fabricCanvas || isRestoringRef.current) return;
+
+    const dataUrl = fabricCanvas.toDataURL({
+      format: 'jpeg',
+      quality: 0.8,
+      multiplier: 1,
+    });
+
+    const newState: HistoryState = {
+      dataUrl,
+      rotation,
+    };
+
+    setHistory(prev => {
+      // Remove any future states if we're not at the end
+      const newHistory = prev.slice(0, historyIndex + 1);
+      newHistory.push(newState);
+      
+      // Limit history size
+      if (newHistory.length > MAX_HISTORY) {
+        return newHistory.slice(-MAX_HISTORY);
+      }
+      return newHistory;
+    });
+    
+    setHistoryIndex(prev => Math.min(prev + 1, MAX_HISTORY - 1));
+  }, [fabricCanvas, rotation, historyIndex]);
+
+  // Restore state from history
+  const restoreFromHistory = useCallback((state: HistoryState) => {
+    if (!fabricCanvas) return;
+
+    isRestoringRef.current = true;
+
+    FabricImage.fromURL(state.dataUrl, { crossOrigin: 'anonymous' }).then((img) => {
+      const canvasWidth = fabricCanvas.width!;
+      const canvasHeight = fabricCanvas.height!;
+
+      const scale = Math.min(
+        (canvasWidth * 0.9) / img.width!,
+        (canvasHeight * 0.9) / img.height!
+      );
+
+      img.scale(scale);
+      img.set({
+        left: canvasWidth / 2,
+        top: canvasHeight / 2,
+        originX: 'center',
+        originY: 'center',
+        selectable: false,
+        evented: false,
+      });
+
+      fabricCanvas.clear();
+      fabricCanvas.add(img);
+      fabricCanvas.renderAll();
+      setFabricImage(img);
+      setRotation(state.rotation);
+      
+      // Exit crop mode if active
+      setIsCropping(false);
+      setCropRect(null);
+
+      isRestoringRef.current = false;
+    });
+  }, [fabricCanvas]);
+
+  // Undo action
+  const handleUndo = useCallback(() => {
+    if (!canUndo) return;
+    
+    const newIndex = historyIndex - 1;
+    setHistoryIndex(newIndex);
+    restoreFromHistory(history[newIndex]);
+    
+    toast({
+      title: 'Undo',
+      description: 'Reverted to previous state',
+    });
+  }, [canUndo, history, historyIndex, restoreFromHistory]);
+
+  // Redo action
+  const handleRedo = useCallback(() => {
+    if (!canRedo) return;
+    
+    const newIndex = historyIndex + 1;
+    setHistoryIndex(newIndex);
+    restoreFromHistory(history[newIndex]);
+    
+    toast({
+      title: 'Redo',
+      description: 'Restored next state',
+    });
+  }, [canRedo, history, historyIndex, restoreFromHistory]);
 
   // Initialize canvas
   useEffect(() => {
@@ -41,7 +155,7 @@ const ImageEditor = ({ imageUrl, onSave, onCancel }: ImageEditorProps) => {
     };
   }, []);
 
-  // Load image
+  // Load image and save initial state
   useEffect(() => {
     if (!fabricCanvas) return;
 
@@ -49,7 +163,6 @@ const ImageEditor = ({ imageUrl, onSave, onCancel }: ImageEditorProps) => {
       const canvasWidth = fabricCanvas.width!;
       const canvasHeight = fabricCanvas.height!;
 
-      // Scale image to fit canvas
       const scale = Math.min(
         (canvasWidth * 0.9) / img.width!,
         (canvasHeight * 0.9) / img.height!
@@ -69,6 +182,16 @@ const ImageEditor = ({ imageUrl, onSave, onCancel }: ImageEditorProps) => {
       fabricCanvas.add(img);
       fabricCanvas.renderAll();
       setFabricImage(img);
+
+      // Save initial state to history
+      const dataUrl = fabricCanvas.toDataURL({
+        format: 'jpeg',
+        quality: 0.8,
+        multiplier: 1,
+      });
+      
+      setHistory([{ dataUrl, rotation: 0 }]);
+      setHistoryIndex(0);
     });
   }, [fabricCanvas, imageUrl]);
 
@@ -80,20 +203,25 @@ const ImageEditor = ({ imageUrl, onSave, onCancel }: ImageEditorProps) => {
     setRotation(newRotation);
     fabricImage.rotate(newRotation);
     fabricCanvas.renderAll();
-  }, [fabricCanvas, fabricImage, rotation]);
+    
+    // Save to history after rotation
+    setTimeout(() => saveToHistory(), 50);
+  }, [fabricCanvas, fabricImage, rotation, saveToHistory]);
 
   // Flip image
   const handleFlipHorizontal = useCallback(() => {
     if (!fabricImage || !fabricCanvas) return;
     fabricImage.set('flipX', !fabricImage.flipX);
     fabricCanvas.renderAll();
-  }, [fabricCanvas, fabricImage]);
+    saveToHistory();
+  }, [fabricCanvas, fabricImage, saveToHistory]);
 
   const handleFlipVertical = useCallback(() => {
     if (!fabricImage || !fabricCanvas) return;
     fabricImage.set('flipY', !fabricImage.flipY);
     fabricCanvas.renderAll();
-  }, [fabricCanvas, fabricImage]);
+    saveToHistory();
+  }, [fabricCanvas, fabricImage, saveToHistory]);
 
   // Zoom
   const handleZoom = useCallback((factor: number) => {
@@ -102,7 +230,8 @@ const ImageEditor = ({ imageUrl, onSave, onCancel }: ImageEditorProps) => {
     const newScale = Math.max(0.1, Math.min(3, currentScale * factor));
     fabricImage.scale(newScale);
     fabricCanvas.renderAll();
-  }, [fabricCanvas, fabricImage]);
+    saveToHistory();
+  }, [fabricCanvas, fabricImage, saveToHistory]);
 
   // Toggle crop mode
   const toggleCropMode = useCallback(() => {
@@ -113,6 +242,14 @@ const ImageEditor = ({ imageUrl, onSave, onCancel }: ImageEditorProps) => {
       setIsCropping(false);
       setCropRect(null);
       fabricCanvas.discardActiveObject();
+      
+      // Remove crop rectangle
+      const objects = fabricCanvas.getObjects();
+      const cropSelection = objects.find(obj => obj.stroke === '#3b82f6');
+      if (cropSelection) {
+        fabricCanvas.remove(cropSelection);
+      }
+      
       fabricCanvas.renderAll();
     } else {
       // Enter crop mode - create crop overlay
@@ -204,8 +341,29 @@ const ImageEditor = ({ imageUrl, onSave, onCancel }: ImageEditorProps) => {
       setIsCropping(false);
       setCropRect(null);
       setRotation(0);
+      
+      // Save to history after crop
+      setTimeout(() => saveToHistory(), 50);
     });
-  }, [fabricCanvas, cropRect]);
+  }, [fabricCanvas, cropRect, saveToHistory]);
+
+  // Handle rotation slider change with debounced history save
+  const rotationTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  
+  const handleSliderRotation = useCallback((value: number) => {
+    if (!fabricImage || !fabricCanvas) return;
+    setRotation(value);
+    fabricImage.rotate(value);
+    fabricCanvas.renderAll();
+    
+    // Debounce history save for slider
+    if (rotationTimeoutRef.current) {
+      clearTimeout(rotationTimeoutRef.current);
+    }
+    rotationTimeoutRef.current = setTimeout(() => {
+      saveToHistory();
+    }, 300);
+  }, [fabricCanvas, fabricImage, saveToHistory]);
 
   // Save edited image
   const handleSave = useCallback(() => {
@@ -242,12 +400,7 @@ const ImageEditor = ({ imageUrl, onSave, onCancel }: ImageEditorProps) => {
         <Label className="text-xs text-muted-foreground">Rotation: {rotation}°</Label>
         <Slider
           value={[rotation]}
-          onValueChange={([value]) => {
-            if (!fabricImage || !fabricCanvas) return;
-            setRotation(value);
-            fabricImage.rotate(value);
-            fabricCanvas.renderAll();
-          }}
+          onValueChange={([value]) => handleSliderRotation(value)}
           min={-180}
           max={180}
           step={1}
@@ -257,6 +410,30 @@ const ImageEditor = ({ imageUrl, onSave, onCancel }: ImageEditorProps) => {
 
       {/* Tool Buttons */}
       <div className="flex flex-wrap gap-2">
+        {/* Undo/Redo */}
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
+          onClick={handleUndo}
+          disabled={!canUndo}
+          title="Undo"
+        >
+          <Undo2 className="h-4 w-4" />
+        </Button>
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
+          onClick={handleRedo}
+          disabled={!canRedo}
+          title="Redo"
+        >
+          <Redo2 className="h-4 w-4" />
+        </Button>
+        
+        <div className="w-px h-6 bg-border mx-1" />
+        
         <Button
           type="button"
           variant="outline"
@@ -320,6 +497,11 @@ const ImageEditor = ({ imageUrl, onSave, onCancel }: ImageEditorProps) => {
         >
           <Crop className="h-4 w-4" />
         </Button>
+      </div>
+
+      {/* History indicator */}
+      <div className="text-xs text-muted-foreground text-center">
+        History: {historyIndex + 1} / {history.length}
       </div>
 
       {/* Crop Apply Button */}
