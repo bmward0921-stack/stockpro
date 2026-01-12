@@ -44,16 +44,6 @@ const ListingForm = () => {
   const [loading, setLoading] = useState(false);
   const [copiedField, setCopiedField] = useState<string | null>(null);
 
-  const copyToClipboard = async (text: string, field: string) => {
-    try {
-      await navigator.clipboard.writeText(text);
-      setCopiedField(field);
-      toast({ title: 'Copied!', description: `${field} copied to clipboard.` });
-      setTimeout(() => setCopiedField(null), 2000);
-    } catch (err) {
-      toast({ title: 'Failed to copy', variant: 'destructive' });
-    }
-  };
   const [formData, setFormData] = useState({
     title: existingListing?.title || '',
     description: existingListing?.description || '',
@@ -75,6 +65,33 @@ const ListingForm = () => {
       return acc;
     }, {} as Record<Platform, { enabled: boolean; price: number; url: string }>)
   );
+
+  const copyToClipboard = async (text: string, field: string) => {
+    try {
+      await navigator.clipboard.writeText(text);
+      setCopiedField(field);
+      toast({ title: 'Copied!', description: `${field} copied to clipboard.` });
+      setTimeout(() => setCopiedField(null), 2000);
+    } catch (err) {
+      toast({ title: 'Failed to copy', variant: 'destructive' });
+    }
+  };
+
+  const copyAllToClipboard = async () => {
+    const enabledPlatforms = PLATFORMS.filter(p => platformSettings[p].enabled);
+    const priceText = enabledPlatforms.length > 0
+      ? `$${platformSettings[enabledPlatforms[0]].price.toFixed(2)}`
+      : formData.costPrice > 0 ? `$${formData.costPrice.toFixed(2)}` : '';
+    
+    const formattedText = [
+      formData.title,
+      priceText ? `Price: ${priceText}` : '',
+      '',
+      formData.description,
+    ].filter(Boolean).join('\n');
+
+    await copyToClipboard(formattedText, 'All');
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -152,7 +169,23 @@ const ListingForm = () => {
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0">
             <CardTitle>Product Details</CardTitle>
-            <div className="flex gap-2">
+            <div className="flex flex-wrap gap-2">
+              {(formData.title || formData.description) && (
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  className="gap-1.5"
+                  onClick={copyAllToClipboard}
+                >
+                  {copiedField === 'All' ? (
+                    <Check className="h-4 w-4 text-success" />
+                  ) : (
+                    <Copy className="h-4 w-4" />
+                  )}
+                  <span className="hidden sm:inline">Copy All</span>
+                </Button>
+              )}
               <ProductLibraryPicker
                 onSelect={(template: ProductTemplate) => {
                   setFormData(prev => ({
