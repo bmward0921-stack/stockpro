@@ -67,7 +67,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
             <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary">
               <Package className="h-4 w-4 text-primary-foreground" />
             </div>
-            <span className="font-semibold">ListingHub</span>
+            <span className="font-semibold">StockSync</span>
           </Link>
           <Button
             variant="ghost"
@@ -135,7 +135,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
           >
             <Menu className="h-5 w-5" />
           </Button>
-          <span className="ml-3 font-semibold">ListingHub</span>
+          <span className="ml-3 font-semibold">StockSync</span>
         </header>
 
         {/* Page content */}
