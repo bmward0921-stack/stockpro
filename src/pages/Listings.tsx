@@ -4,13 +4,6 @@ import { useListings } from '@/hooks/useListings';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
-import {
   Table,
   TableBody,
   TableCell,
@@ -124,39 +117,59 @@ const Listings = () => {
         </Button>
       </div>
 
-      {/* Filters */}
-      <div className="flex flex-col gap-4 sm:flex-row">
-        <div className="relative flex-1">
-          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-          <Input
-            placeholder="Search listings..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="pl-9"
-          />
-        </div>
-        <Select value={platformFilter} onValueChange={(v) => setPlatformFilter(v as Platform | 'all')}>
-          <SelectTrigger className="w-full sm:w-48">
-            <SelectValue placeholder="All platforms" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">All platforms</SelectItem>
-            {Object.entries(PLATFORM_LABELS).map(([key, label]) => (
-              <SelectItem key={key} value={key}>{label}</SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-        <Select value={statusFilter} onValueChange={(v) => setStatusFilter(v as ListingStatus | 'all')}>
-          <SelectTrigger className="w-full sm:w-40">
-            <SelectValue placeholder="All statuses" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">All statuses</SelectItem>
-            {Object.entries(STATUS_LABELS).map(([key, label]) => (
-              <SelectItem key={key} value={key}>{label}</SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+      {/* Search */}
+      <div className="relative">
+        <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+        <Input
+          placeholder="Search products by name or SKU..."
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          className="pl-9"
+        />
+      </div>
+
+      {/* Platform Filter Buttons */}
+      <div className="flex flex-wrap gap-2">
+        <Button
+          variant={platformFilter === 'all' ? 'default' : 'outline'}
+          size="sm"
+          onClick={() => setPlatformFilter('all')}
+          className="rounded-full"
+        >
+          All Platforms
+        </Button>
+        {Object.entries(PLATFORM_LABELS).map(([key, label]) => (
+          <Button
+            key={key}
+            variant={platformFilter === key ? 'default' : 'outline'}
+            size="sm"
+            onClick={() => setPlatformFilter(key as Platform)}
+            className="rounded-full"
+          >
+            {label}
+          </Button>
+        ))}
+      </div>
+
+      {/* Status Filter Buttons */}
+      <div className="flex flex-wrap gap-2">
+        <Button
+          variant={statusFilter === 'all' ? 'secondary' : 'ghost'}
+          size="sm"
+          onClick={() => setStatusFilter('all')}
+        >
+          All Statuses
+        </Button>
+        {Object.entries(STATUS_LABELS).map(([key, label]) => (
+          <Button
+            key={key}
+            variant={statusFilter === key ? 'secondary' : 'ghost'}
+            size="sm"
+            onClick={() => setStatusFilter(key as ListingStatus)}
+          >
+            {label}
+          </Button>
+        ))}
       </div>
 
       {/* Table */}
