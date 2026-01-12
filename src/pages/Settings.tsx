@@ -18,7 +18,7 @@ import { Save, Building2, Bell, Palette, Shield, Users, FileText } from 'lucide-
 import { PLATFORM_LABELS, Platform } from '@/types/listing';
 import PlatformTemplateSettings from '@/components/PlatformTemplateSettings';
 
-// Settings stored in localStorage for demo - in production, store in Appwrite
+// Settings stored in localStorage for demo - in production, store in database
 const SETTINGS_KEY = 'listinghub_settings';
 
 interface TeamSettings {
@@ -308,8 +308,8 @@ const Settings = () => {
               <div>
                 <p className="font-medium">Team Management</p>
                 <p className="mt-1 text-sm text-muted-foreground">
-                  To add or remove team members, manage their accounts in your Appwrite console.
-                  Only pre-approved email addresses can access this application.
+                  Team member management is handled through your account settings.
+                  Only authorized email addresses can access this application.
                 </p>
                 <p className="mt-2 text-sm text-muted-foreground">
                   Current user: <span className="font-medium text-foreground">{user?.email}</span>
