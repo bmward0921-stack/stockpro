@@ -23,8 +23,8 @@ interface DashboardLayoutProps {
 
 const navigation = [
   { name: 'Dashboard', href: '/', icon: LayoutDashboard },
-  { name: 'Listings', href: '/listings', icon: Package },
-  { name: 'Add Listing', href: '/listings/new', icon: PlusCircle },
+  { name: 'Inventory', href: '/listings', icon: Package },
+  { name: 'Add Item', href: '/listings/new', icon: PlusCircle },
   { name: 'Analytics', href: '/analytics', icon: BarChart3 },
   { name: 'Settings', href: '/settings', icon: Settings },
   { name: 'Admin', href: '/admin', icon: ShieldCheck },
