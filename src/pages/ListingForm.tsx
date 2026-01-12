@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { useListings } from '@/hooks/useListings';
 import { useActivityLog } from '@/hooks/useActivityLog';
 import { Button } from '@/components/ui/button';
@@ -31,26 +31,42 @@ const PLATFORMS: Platform[] = ['facebook', 'poshmark', 'squarespace'];
 
 const ListingForm = () => {
   const { id } = useParams();
+  const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const { listings, createListing, updateListing } = useListings();
   const { logActivity } = useActivityLog();
   const isEditing = !!id;
   const existingListing = listings.find((l) => l.id === id);
 
+  // Parse prefill data from query param (from Smart Scan)
+  const prefillData = (() => {
+    try {
+      const prefill = searchParams.get('prefill');
+      if (prefill) {
+        return JSON.parse(decodeURIComponent(prefill));
+      }
+    } catch (e) {
+      console.error('Failed to parse prefill data:', e);
+    }
+    return null;
+  })();
+
   // Get existing images
   const existingImages = existingListing?.images?.length 
     ? existingListing.images 
-    : [];
+    : prefillData?.imageUrl 
+      ? [prefillData.imageUrl]
+      : [];
 
   const [loading, setLoading] = useState(false);
   const [copiedField, setCopiedField] = useState<string | null>(null);
 
   const [formData, setFormData] = useState({
-    title: existingListing?.title || '',
-    description: existingListing?.description || '',
+    title: existingListing?.title || prefillData?.title || '',
+    description: existingListing?.description || prefillData?.description || '',
     images: existingImages,
-    category: existingListing?.category || '',
-    costPrice: existingListing?.costPrice || 0,
+    category: existingListing?.category || prefillData?.category || '',
+    costPrice: existingListing?.costPrice || prefillData?.suggestedPrice || 0,
     sku: existingListing?.sku || '',
     quantity: existingListing?.quantity || 1,
   });
@@ -60,7 +76,7 @@ const ListingForm = () => {
       const existing = existingListing?.platforms.find((p) => p.platform === platform);
       acc[platform] = {
         enabled: !!existing,
-        price: existing?.price || 0,
+        price: existing?.price || prefillData?.suggestedPrice || 0,
         url: existing?.url || '',
       };
       return acc;
