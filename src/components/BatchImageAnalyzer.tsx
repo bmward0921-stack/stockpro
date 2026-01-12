@@ -2,7 +2,7 @@ import { useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { Camera, Upload, Loader2, Scan, X, Library, Images, Plus, Trash2, Zap } from 'lucide-react';
+import { Camera, Upload, Loader2, Scan, X, Library, Images, Plus, Trash2, Zap, Edit2 } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { useProductLibrary } from '@/hooks/useProductLibrary';
@@ -12,6 +12,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import ImageEditor from './ImageEditor';
 
 export interface ProductDetails {
   title: string;
@@ -48,6 +49,8 @@ const BatchImageAnalyzer = ({ onProductsDetected }: BatchImageAnalyzerProps) => 
   const [progress, setProgress] = useState(0);
   const [mode, setMode] = useState<'quick' | 'batch'>('quick');
   const [quickPreview, setQuickPreview] = useState<string | null>(null);
+  const [editingImage, setEditingImage] = useState<string | null>(null);
+  const [editingImageId, setEditingImageId] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const quickFileInputRef = useRef<HTMLInputElement>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -65,8 +68,48 @@ const BatchImageAnalyzer = ({ onProductsDetected }: BatchImageAnalyzerProps) => 
     stopCamera();
     setCapturedImages([]);
     setQuickPreview(null);
+    setEditingImage(null);
+    setEditingImageId(null);
     setProgress(0);
     setOpen(false);
+  };
+
+  // Handle editing quick preview image
+  const handleEditQuickImage = () => {
+    if (quickPreview) {
+      setEditingImage(quickPreview);
+      setEditingImageId('quick');
+    }
+  };
+
+  // Handle editing batch image
+  const handleEditBatchImage = (image: CapturedImage) => {
+    setEditingImage(image.dataUrl);
+    setEditingImageId(image.id);
+  };
+
+  // Save edited image
+  const handleSaveEditedImage = (editedDataUrl: string) => {
+    if (editingImageId === 'quick') {
+      setQuickPreview(editedDataUrl);
+    } else if (editingImageId) {
+      setCapturedImages(prev =>
+        prev.map(img =>
+          img.id === editingImageId ? { ...img, dataUrl: editedDataUrl } : img
+        )
+      );
+    }
+    setEditingImage(null);
+    setEditingImageId(null);
+    toast({
+      title: 'Image updated',
+      description: 'Your edits have been applied.',
+    });
+  };
+
+  const handleCancelEdit = () => {
+    setEditingImage(null);
+    setEditingImageId(null);
   };
 
   const startCamera = async () => {
@@ -341,13 +384,22 @@ const BatchImageAnalyzer = ({ onProductsDetected }: BatchImageAnalyzerProps) => 
           Smart Scan
         </Button>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-lg">
+      <DialogContent className="sm:max-w-lg max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Scan className="h-5 w-5" />
-            Product Scanner
+            {editingImage ? 'Edit Image' : 'Product Scanner'}
           </DialogTitle>
         </DialogHeader>
+
+        {/* Image Editor View */}
+        {editingImage ? (
+          <ImageEditor
+            imageUrl={editingImage}
+            onSave={handleSaveEditedImage}
+            onCancel={handleCancelEdit}
+          />
+        ) : (
 
         <Tabs value={mode} onValueChange={(v) => setMode(v as 'quick' | 'batch')} className="w-full">
           <TabsList className="grid w-full grid-cols-2">
@@ -390,22 +442,30 @@ const BatchImageAnalyzer = ({ onProductsDetected }: BatchImageAnalyzerProps) => 
             )}
 
             {/* Preview for Quick Scan */}
-            {!cameraActive && quickPreview && (
+            {!cameraActive && quickPreview && !analyzing && (
               <div className="relative aspect-square w-full overflow-hidden rounded-lg bg-muted">
                 <img
                   src={quickPreview}
                   alt="Product preview"
                   className="h-full w-full object-contain"
                 />
-                <Button
-                  size="icon"
-                  variant="secondary"
-                  className="absolute right-2 top-2"
-                  onClick={() => setQuickPreview(null)}
-                  disabled={analyzing}
-                >
-                  <X className="h-4 w-4" />
-                </Button>
+                <div className="absolute right-2 top-2 flex gap-1">
+                  <Button
+                    size="icon"
+                    variant="secondary"
+                    onClick={handleEditQuickImage}
+                    title="Edit image"
+                  >
+                    <Edit2 className="h-4 w-4" />
+                  </Button>
+                  <Button
+                    size="icon"
+                    variant="secondary"
+                    onClick={() => setQuickPreview(null)}
+                  >
+                    <X className="h-4 w-4" />
+                  </Button>
+                </div>
               </div>
             )}
 
@@ -529,15 +589,27 @@ const BatchImageAnalyzer = ({ onProductsDetected }: BatchImageAnalyzerProps) => 
                           </div>
                         )}
                       </div>
-                      {!analyzing && (
-                        <Button
-                          size="icon"
-                          variant="destructive"
-                          className="absolute -right-1 -top-1 h-5 w-5 opacity-0 group-hover:opacity-100 transition-opacity"
-                          onClick={() => removeImage(image.id)}
-                        >
-                          <Trash2 className="h-3 w-3" />
-                        </Button>
+                      {!analyzing && image.status === 'pending' && (
+                        <div className="absolute -right-1 -top-1 flex gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
+                          <Button
+                            size="icon"
+                            variant="secondary"
+                            className="h-5 w-5"
+                            onClick={() => handleEditBatchImage(image)}
+                            title="Edit"
+                          >
+                            <Edit2 className="h-3 w-3" />
+                          </Button>
+                          <Button
+                            size="icon"
+                            variant="destructive"
+                            className="h-5 w-5"
+                            onClick={() => removeImage(image.id)}
+                            title="Remove"
+                          >
+                            <Trash2 className="h-3 w-3" />
+                          </Button>
+                        </div>
                       )}
                       <Badge 
                         variant={getStatusColor(image.status)} 
@@ -651,6 +723,7 @@ const BatchImageAnalyzer = ({ onProductsDetected }: BatchImageAnalyzerProps) => 
             )}
           </TabsContent>
         </Tabs>
+        )}
       </DialogContent>
     </Dialog>
   );
