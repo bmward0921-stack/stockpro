@@ -25,6 +25,7 @@ import AIDescriptionGenerator from '@/components/AIDescriptionGenerator';
 import ProductImageAnalyzer from '@/components/ProductImageAnalyzer';
 import ProductLibraryPicker from '@/components/ProductLibraryPicker';
 import PlatformCopyButtons from '@/components/PlatformCopyButtons';
+import PriceSuggestion from '@/components/PriceSuggestion';
 import { ProductTemplate } from '@/hooks/useProductLibrary';
 
 const PLATFORMS: Platform[] = ['facebook', 'poshmark', 'squarespace'];
@@ -372,8 +373,28 @@ const ListingForm = () => {
         {/* Platform Settings */}
         <Card>
           <CardHeader className="p-4 sm:p-6">
-            <CardTitle className="text-lg sm:text-xl">Platform Settings</CardTitle>
-            <p className="text-sm text-muted-foreground">Enable platforms and set prices for your listing</p>
+            <div className="flex items-center justify-between gap-2">
+              <div>
+                <CardTitle className="text-lg sm:text-xl">Platform Settings</CardTitle>
+                <p className="text-sm text-muted-foreground">Enable platforms and set prices for your listing</p>
+              </div>
+              <PriceSuggestion
+                title={formData.title}
+                category={formData.category}
+                description={formData.description}
+                onApplyPrices={(prices) => {
+                  setPlatformSettings(prev => {
+                    const updated = { ...prev };
+                    (Object.keys(prices) as Platform[]).forEach(platform => {
+                      if (updated[platform]) {
+                        updated[platform] = { ...updated[platform], price: prices[platform] };
+                      }
+                    });
+                    return updated;
+                  });
+                }}
+              />
+            </div>
           </CardHeader>
           <CardContent className="space-y-5 p-4 pt-0 sm:space-y-6 sm:p-6 sm:pt-0">
             {PLATFORMS.map((platform) => (
