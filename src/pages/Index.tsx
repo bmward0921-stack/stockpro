@@ -1,6 +1,7 @@
 import { useState, useRef } from "react";
 import { Link } from "react-router-dom";
-import { ExternalLink, Plus, Package, ArrowRight, Search, Camera, X, Settings } from "lucide-react";
+import { ExternalLink, Plus, Package, ArrowRight, Search, X } from "lucide-react";
+import ProductImageAnalyzer, { ProductDetails } from "@/components/ProductImageAnalyzer";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -141,12 +142,16 @@ const Index = () => {
         className="hidden"
       />
 
-      {/* Camera Button Header */}
+      {/* Smart Scan Header */}
       <div className="sticky top-0 z-10 flex items-center justify-between border-b bg-background/95 px-4 py-3 backdrop-blur supports-[backdrop-filter]:bg-background/60">
         <h1 className="text-xl font-bold">StockSync</h1>
-        <Button variant="info" size="icon" onClick={handleCameraClick}>
-          <Camera className="h-5 w-5" />
-        </Button>
+        <ProductImageAnalyzer 
+          onProductDetected={(details: ProductDetails) => {
+            console.log("Product detected:", details);
+            // Navigate to create listing with detected data
+            window.location.href = `/listings/new?prefill=${encodeURIComponent(JSON.stringify(details))}`;
+          }} 
+        />
       </div>
 
       {/* Uploaded Images Preview */}
