@@ -181,6 +181,7 @@ const ProductImageAnalyzer = ({ onProductDetected }: ProductImageAnalyzerProps) 
                 ref={videoRef}
                 autoPlay
                 playsInline
+                muted
                 className="h-full w-full object-cover"
               />
             ) : previewUrl ? (
