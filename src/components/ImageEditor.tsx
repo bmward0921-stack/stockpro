@@ -280,7 +280,7 @@ const ImageEditor = ({ imageUrl, onSave, onCancel }: ImageEditorProps) => {
   }, [applyFilters]);
 
   // Handle brightness change with debounced history save
-  const brightnessTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const brightnessTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   
   const handleBrightnessChange = useCallback((value: number) => {
     setBrightness(value);
@@ -294,7 +294,7 @@ const ImageEditor = ({ imageUrl, onSave, onCancel }: ImageEditorProps) => {
   }, [saveToHistory]);
 
   // Handle contrast change with debounced history save
-  const contrastTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const contrastTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   
   const handleContrastChange = useCallback((value: number) => {
     setContrast(value);
@@ -308,7 +308,7 @@ const ImageEditor = ({ imageUrl, onSave, onCancel }: ImageEditorProps) => {
   }, [saveToHistory]);
 
   // Handle saturation change with debounced history save
-  const saturationTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const saturationTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   
   const handleSaturationChange = useCallback((value: number) => {
     setSaturation(value);
@@ -494,7 +494,7 @@ const ImageEditor = ({ imageUrl, onSave, onCancel }: ImageEditorProps) => {
   }, [fabricCanvas, cropRect, saveToHistory]);
 
   // Handle rotation slider change with debounced history save
-  const rotationTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const rotationTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   
   const handleSliderRotation = useCallback((value: number) => {
     if (!fabricImage || !fabricCanvas) return;
