@@ -167,7 +167,7 @@ const ListingForm = () => {
     <div className="mx-auto max-w-3xl space-y-4 px-2 sm:space-y-6 sm:px-0">
       {/* Header - responsive for portrait/landscape */}
       <div className="flex items-center gap-2 sm:gap-4">
-        <Button variant="ghost" size="icon" className="h-8 w-8 sm:h-10 sm:w-10" asChild>
+        <Button variant="ghost" size="icon" aria-label="Back to listings" className="h-8 w-8 sm:h-10 sm:w-10" asChild>
           <Link to="/listings">
             <ArrowLeft className="h-4 w-4 sm:h-5 sm:w-5" />
           </Link>
