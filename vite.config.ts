@@ -17,8 +17,8 @@ export default defineConfig(({ mode }) => ({
       registerType: "autoUpdate",
       includeAssets: ["favicon.ico", "icon-192.png", "icon-512.png"],
       manifest: {
-        name: "StockSync - Multi-Platform Inventory",
-        short_name: "StockSync",
+        name: "ListPro.AI - Multi-Platform Inventory",
+        short_name: "ListPro.AI",
         description: "Multi-platform inventory management for resellers",
         theme_color: "#22c55e",
         background_color: "#1a1a1a",

@@ -170,7 +170,7 @@ const Index = () => {
 
       {/* Smart Scan Header */}
       <div className="sticky top-0 z-10 flex items-center justify-between border-b bg-background/95 px-4 py-3 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-        <h1 className="text-xl font-bold">StockSync</h1>
+        <h1 className="text-xl font-bold">ListPro.AI</h1>
         <BatchImageAnalyzer 
           onProductsDetected={(products: ProductDetails[]) => {
             console.log("Products detected:", products);
@@ -207,7 +207,7 @@ const Index = () => {
       {/* Hero Section */}
       <div className="flex flex-1 flex-col items-center justify-center px-4 py-12">
         <div className="text-center">
-          <h1 className="mb-4">Welcome to StockSync</h1>
+          <h1 className="mb-4">Welcome to ListPro.AI</h1>
           <p className="text-xl text-muted-foreground">
             Manage and cross-list your inventory across platforms
           </p>

@@ -73,9 +73,9 @@ const Install = () => {
         {/* Hero Section */}
         <div className="mb-8 text-center">
           <div className="mx-auto mb-4 flex h-20 w-20 items-center justify-center rounded-2xl bg-primary/10">
-            <img src="/icon-192.png" alt="StockSync" className="h-16 w-16 rounded-xl" />
+            <img src="/icon-192.png" alt="ListPro.AI" className="h-16 w-16 rounded-xl" />
           </div>
-          <h1 className="text-3xl font-bold">Install StockSync</h1>
+          <h1 className="text-3xl font-bold">Install ListPro.AI</h1>
           <p className="mt-2 text-muted-foreground">
             Get the full app experience on your device
           </p>
@@ -91,7 +91,7 @@ const Install = () => {
               <div>
                 <p className="font-medium text-green-600">App Installed!</p>
                 <p className="text-sm text-muted-foreground">
-                  StockSync is ready to use from your home screen
+                  ListPro.AI is ready to use from your home screen
                 </p>
               </div>
             </CardContent>
@@ -147,7 +147,7 @@ const Install = () => {
           <Card className="mb-6">
             <CardHeader>
               <CardTitle>Install on iPhone/iPad</CardTitle>
-              <CardDescription>Follow these steps to add StockSync to your home screen</CardDescription>
+              <CardDescription>Follow these steps to add ListPro.AI to your home screen</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="flex items-start gap-3">
@@ -183,7 +183,7 @@ const Install = () => {
           <Card className="mb-6">
             <CardHeader>
               <CardTitle>Install on Android</CardTitle>
-              <CardDescription>Follow these steps to add StockSync to your home screen</CardDescription>
+              <CardDescription>Follow these steps to add ListPro.AI to your home screen</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="flex items-start gap-3">
@@ -219,7 +219,7 @@ const Install = () => {
           <Card className="mb-6">
             <CardHeader>
               <CardTitle>Install on Desktop</CardTitle>
-              <CardDescription>Add StockSync to your computer</CardDescription>
+              <CardDescription>Add ListPro.AI to your computer</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="flex items-start gap-3">

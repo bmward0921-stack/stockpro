@@ -118,7 +118,7 @@ const Login = () => {
                 <Sparkles className="absolute -right-2 -top-2 h-6 w-6 animate-pulse text-info" />
               </div>
               <h1 className="bg-gradient-to-r from-foreground via-foreground to-muted-foreground bg-clip-text text-2xl font-bold text-transparent sm:text-3xl">
-                StockSync
+                ListPro.AI
               </h1>
               <p className="mt-2 text-sm text-muted-foreground">
                 Manage your multi-platform listings

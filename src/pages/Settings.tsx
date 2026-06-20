@@ -296,14 +296,14 @@ const Settings = () => {
             <CardTitle>Install App</CardTitle>
           </div>
           <CardDescription>
-            Add StockSync to your home screen for quick access
+            Add ListPro.AI to your home screen for quick access
           </CardDescription>
         </CardHeader>
         <CardContent>
           <Button asChild variant="outline" className="w-full sm:w-auto">
             <Link to="/install">
               <Download className="mr-2 h-4 w-4" />
-              Install StockSync
+              Install ListPro.AI
             </Link>
           </Button>
         </CardContent>

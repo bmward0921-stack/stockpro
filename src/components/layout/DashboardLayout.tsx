@@ -63,11 +63,11 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
             <Link to="/" className="flex items-center gap-2">
               <img 
                 src={stockSyncLogo} 
-                alt="StockSync Logo" 
+                alt="ListPro.AI Logo" 
                 className="h-8 w-8 rounded-lg object-cover"
               />
               <div className="hidden sm:block">
-                <span className="font-semibold">StockSync</span>
+                <span className="font-semibold">ListPro.AI</span>
                 <p className="text-xs text-muted-foreground">Multi-Platform Inventory</p>
               </div>
             </Link>
